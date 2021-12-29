@@ -608,6 +608,128 @@ builtin_locals(PyObject *module, PyObject *Py_UNUSED(ignored))
     return builtin_locals_impl(module);
 }
 
+PyDoc_STRVAR(builtin_min__doc__,
+"min($module, /, *args, key=<unrepresentable>, default=<unrepresentable>)\n"
+"--\n"
+"\n"
+"Return the smallest argument or the smallest item in iterable object.\n"
+"\n"
+"  key\n"
+"    one-argument function to extract a comparison key from each element.\n"
+"  default\n"
+"    object to return if the provided iterable is empty.\n"
+"\n"
+"min(iterable, *[, default=obj, key=func]) -> value\n"
+"min(arg1, arg2, *args, *[, key=func]) -> value\n"
+"\n"
+"With a single iterable argument, return its smallest item. The\n"
+"default keyword-only argument specifies an object to return if\n"
+"the provided iterable is empty.\n"
+"With two or more arguments, return the smallest argument.");
+
+#define BUILTIN_MIN_METHODDEF    \
+    {"min", (PyCFunction)(void(*)(void))builtin_min, METH_FASTCALL|METH_KEYWORDS, builtin_min__doc__},
+
+static PyObject *
+builtin_min_impl(PyObject *module, PyObject *args, PyObject *key,
+                 PyObject *default_value);
+
+static PyObject *
+builtin_min(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"key", "default", NULL};
+    static _PyArg_Parser _parser = {NULL, _keywords, "min", 0};
+    PyObject *argsbuf[3];
+    Py_ssize_t noptargs = 0 + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
+    PyObject *__clinic_args = NULL;
+    PyObject *key = NULL;
+    PyObject *default_value = NULL;
+
+    args = _PyArg_UnpackKeywordsWithVararg(args, nargs, NULL, kwnames, &_parser, 0, 0, 0, 0, argsbuf);
+    if (!args) {
+        goto exit;
+    }
+    __clinic_args = args[0];
+    if (!noptargs) {
+        goto skip_optional_kwonly;
+    }
+    if (args[1]) {
+        key = args[1];
+        if (!--noptargs) {
+            goto skip_optional_kwonly;
+        }
+    }
+    default_value = args[2];
+skip_optional_kwonly:
+    return_value = builtin_min_impl(module, __clinic_args, key, default_value);
+
+exit:
+    Py_XDECREF(__clinic_args);
+    return return_value;
+}
+
+PyDoc_STRVAR(builtin_max__doc__,
+"max($module, /, *args, key=<unrepresentable>, default=<unrepresentable>)\n"
+"--\n"
+"\n"
+"Return the smallest argument or the smallest item in iterable object.\n"
+"\n"
+"  key\n"
+"    one-argument function to extract a comparison key from each element.\n"
+"  default\n"
+"    object to return if the provided iterable is empty.\n"
+"\n"
+"max(iterable, *[, default=obj, key=func]) -> value\n"
+"max(arg1, arg2, *args, *[, key=func]) -> value\n"
+"\n"
+"With a single iterable argument, return its biggest item. The\n"
+"default keyword-only argument specifies an object to return if\n"
+"the provided iterable is empty.\n"
+"With two or more arguments, return the smallest argument.");
+
+#define BUILTIN_MAX_METHODDEF    \
+    {"max", (PyCFunction)(void(*)(void))builtin_max, METH_FASTCALL|METH_KEYWORDS, builtin_max__doc__},
+
+static PyObject *
+builtin_max_impl(PyObject *module, PyObject *args, PyObject *key,
+                 PyObject *default_value);
+
+static PyObject *
+builtin_max(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"key", "default", NULL};
+    static _PyArg_Parser _parser = {NULL, _keywords, "max", 0};
+    PyObject *argsbuf[3];
+    Py_ssize_t noptargs = 0 + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
+    PyObject *__clinic_args = NULL;
+    PyObject *key = NULL;
+    PyObject *default_value = NULL;
+
+    args = _PyArg_UnpackKeywordsWithVararg(args, nargs, NULL, kwnames, &_parser, 0, 0, 0, 0, argsbuf);
+    if (!args) {
+        goto exit;
+    }
+    __clinic_args = args[0];
+    if (!noptargs) {
+        goto skip_optional_kwonly;
+    }
+    if (args[1]) {
+        key = args[1];
+        if (!--noptargs) {
+            goto skip_optional_kwonly;
+        }
+    }
+    default_value = args[2];
+skip_optional_kwonly:
+    return_value = builtin_max_impl(module, __clinic_args, key, default_value);
+
+exit:
+    Py_XDECREF(__clinic_args);
+    return return_value;
+}
+
 PyDoc_STRVAR(builtin_oct__doc__,
 "oct($module, number, /)\n"
 "--\n"
@@ -951,4 +1073,4 @@ builtin_issubclass(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=77ace832b3fb38e0 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=1ecea82b685150d0 input=a9049054013a1b77]*/

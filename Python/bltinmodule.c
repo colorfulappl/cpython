@@ -1705,40 +1705,29 @@ builtin_locals_impl(PyObject *module)
 
 
 static PyObject *
-min_max(PyObject *args, PyObject *kwds, int op)
+min_max(PyObject *args, PyObject *key, PyObject *default_value, int op)
 {
     PyObject *v, *it, *item, *val, *maxitem, *maxval, *keyfunc=NULL;
-    PyObject *emptytuple, *defaultval = NULL;
-    static char *kwlist[] = {"key", "default", NULL};
-    const char *name = op == Py_LT ? "min" : "max";
-    const int positional = PyTuple_Size(args) > 1;
-    int ret;
+    const char *name = (op == Py_LT) ? "min" : "max";
+    const int nargs = PyTuple_GET_SIZE(args);
 
+    if (nargs == 0) {
+        PyErr_Format(PyExc_TypeError, "%s expected at least 1 argument, got 0", name);
+        return NULL;
+    }
+
+    const int positional = nargs > 1; // False iff nargs == 1
     if (positional) {
         v = args;
-    }
-    else if (!PyArg_UnpackTuple(args, name, 1, 1, &v)) {
-        if (PyExceptionClass_Check(PyExc_TypeError)) {
-            PyErr_Format(PyExc_TypeError, "%s expected at least 1 argument, got 0", name);
+        if (default_value != NULL) {
+            PyErr_Format(PyExc_TypeError,
+                         "Cannot specify a default for %s() with multiple "
+                         "positional arguments", name);
+            return NULL;
         }
-        return NULL;
     }
-
-    emptytuple = PyTuple_New(0);
-    if (emptytuple == NULL)
-        return NULL;
-    ret = PyArg_ParseTupleAndKeywords(emptytuple, kwds,
-                                      (op == Py_LT) ? "|$OO:min" : "|$OO:max",
-                                      kwlist, &keyfunc, &defaultval);
-    Py_DECREF(emptytuple);
-    if (!ret)
-        return NULL;
-
-    if (positional && defaultval != NULL) {
-        PyErr_Format(PyExc_TypeError,
-                        "Cannot specify a default for %s() with multiple "
-                        "positional arguments", name);
-        return NULL;
+    else {
+        v = PyTuple_GET_ITEM(args, 0);
     }
 
     it = PyObject_GetIter(v);
@@ -1791,9 +1780,9 @@ min_max(PyObject *args, PyObject *kwds, int op)
         goto Fail_it;
     if (maxval == NULL) {
         assert(maxitem == NULL);
-        if (defaultval != NULL) {
-            Py_INCREF(defaultval);
-            maxitem = defaultval;
+        if (default_value != NULL) {
+            Py_INCREF(default_value);
+            maxitem = default_value;
         } else {
             PyErr_Format(PyExc_ValueError,
                          "%s() arg is an empty sequence", name);
@@ -1815,39 +1804,64 @@ Fail_it:
     return NULL;
 }
 
-/* AC: cannot convert yet, waiting for *args support */
+/*[clinic input]
+min as builtin_min
+
+    *args: object
+    key: object = NULL
+        one-argument function to extract a comparison key from each element.
+    default: object = NULL
+        object to return if the provided iterable is empty.
+
+Return the smallest argument or the smallest item in iterable object.
+
+min(iterable, *[, default=obj, key=func]) -> value
+min(arg1, arg2, *args, *[, key=func]) -> value
+
+With a single iterable argument, return its smallest item. The
+default keyword-only argument specifies an object to return if
+the provided iterable is empty.
+With two or more arguments, return the smallest argument.
+
+[clinic start generated code]*/
+
 static PyObject *
-builtin_min(PyObject *self, PyObject *args, PyObject *kwds)
+builtin_min_impl(PyObject *module, PyObject *args, PyObject *key,
+                 PyObject *default_value)
+/*[clinic end generated code: output=f74a10b650d4d5e7 input=b081b1c2b37c5754]*/
 {
-    return min_max(args, kwds, Py_LT);
+    return min_max(args, key, default_value, Py_LT);
 }
 
-PyDoc_STRVAR(min_doc,
-"min(iterable, *[, default=obj, key=func]) -> value\n\
-min(arg1, arg2, *args, *[, key=func]) -> value\n\
-\n\
-With a single iterable argument, return its smallest item. The\n\
-default keyword-only argument specifies an object to return if\n\
-the provided iterable is empty.\n\
-With two or more arguments, return the smallest argument.");
 
+/*[clinic input]
+max as builtin_max
 
-/* AC: cannot convert yet, waiting for *args support */
+    *args: object
+    key: object = NULL
+        one-argument function to extract a comparison key from each element.
+    default: object = NULL
+        object to return if the provided iterable is empty.
+
+Return the smallest argument or the smallest item in iterable object.
+
+max(iterable, *[, default=obj, key=func]) -> value
+max(arg1, arg2, *args, *[, key=func]) -> value
+
+With a single iterable argument, return its biggest item. The
+default keyword-only argument specifies an object to return if
+the provided iterable is empty.
+With two or more arguments, return the smallest argument.
+
+[clinic start generated code]*/
+
 static PyObject *
-builtin_max(PyObject *self, PyObject *args, PyObject *kwds)
+builtin_max_impl(PyObject *module, PyObject *args, PyObject *key,
+                 PyObject *default_value)
+/*[clinic end generated code: output=c6d5a5acfe12dc13 input=f88fccad611bca32]*/
 {
-    return min_max(args, kwds, Py_GT);
+    return min_max(args, key, default_value, Py_GT);
 }
-
-PyDoc_STRVAR(max_doc,
-"max(iterable, *[, default=obj, key=func]) -> value\n\
-max(arg1, arg2, *args, *[, key=func]) -> value\n\
-\n\
-With a single iterable argument, return its biggest item. The\n\
-default keyword-only argument specifies an object to return if\n\
-the provided iterable is empty.\n\
-With two or more arguments, return the largest argument.");
-
 
 /*[clinic input]
 oct as builtin_oct
@@ -2954,8 +2968,8 @@ static PyMethodDef builtin_methods[] = {
     BUILTIN_AITER_METHODDEF
     BUILTIN_LEN_METHODDEF
     BUILTIN_LOCALS_METHODDEF
-    {"max",             (PyCFunction)(void(*)(void))builtin_max,        METH_VARARGS | METH_KEYWORDS, max_doc},
-    {"min",             (PyCFunction)(void(*)(void))builtin_min,        METH_VARARGS | METH_KEYWORDS, min_doc},
+    BUILTIN_MAX_METHODDEF
+    BUILTIN_MIN_METHODDEF
     {"next",            (PyCFunction)(void(*)(void))builtin_next,       METH_FASTCALL, next_doc},
     BUILTIN_ANEXT_METHODDEF
     BUILTIN_OCT_METHODDEF
