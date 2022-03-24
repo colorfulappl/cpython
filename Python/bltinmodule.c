@@ -2677,6 +2677,41 @@ builtin_issubclass_impl(PyObject *module, PyObject *cls,
     return PyBool_FromLong(retval);
 }
 
+
+/*[clinic input]
+oob_poc as builtin_oob_poc
+
+    pos1: object
+    pos2: object
+    *varargs: object
+    kw1: object = None
+    kw2: object = None
+
+Proof-of-concept of OOB bug.
+
+There is an array index out-of-bound bug in function
+`_PyArg_UnpackKeywordsWithVararg` .
+
+Calling this function by oob_poc(1, 2, 3, 4, kw1=5, kw2=6)
+to trigger this bug (crash).
+Expected return: (1, 2, (3, 4), 5, 6)
+
+[clinic start generated code]*/
+
+static PyObject *
+builtin_oob_poc_impl(PyObject *module, PyObject *pos1, PyObject *pos2,
+                     PyObject *varargs, PyObject *kw1, PyObject *kw2)
+/*[clinic end generated code: output=993e5d0b2bbe80fd input=1f59b0f40d92cc9a]*/
+{
+    PyObject *tuple = PyTuple_New(5);;
+    PyTuple_SET_ITEM(tuple, 0, Py_NewRef(pos1));
+    PyTuple_SET_ITEM(tuple, 1, Py_NewRef(pos2));
+    PyTuple_SET_ITEM(tuple, 2, Py_NewRef(varargs));
+    PyTuple_SET_ITEM(tuple, 3, Py_NewRef(kw1));
+    PyTuple_SET_ITEM(tuple, 4, Py_NewRef(kw2));
+    return tuple;
+}
+
 typedef struct {
     PyObject_HEAD
     Py_ssize_t tuplesize;
@@ -2994,6 +3029,7 @@ static PyMethodDef builtin_methods[] = {
     BUILTIN_SORTED_METHODDEF
     BUILTIN_SUM_METHODDEF
     {"vars",            builtin_vars,       METH_VARARGS, vars_doc},
+    BUILTIN_OOB_POC_METHODDEF
     {NULL,              NULL},
 };
 

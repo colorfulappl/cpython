@@ -1282,4 +1282,96 @@ builtin_issubclass(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=4590e66a40312a9f input=a9049054013a1b77]*/
+
+PyDoc_STRVAR(builtin_oob_poc__doc__,
+"oob_poc($module, /, pos1, pos2, *varargs, kw1=None, kw2=None)\n"
+"--\n"
+"\n"
+"Proof-of-concept of OOB bug.\n"
+"\n"
+"There is an array index out-of-bound bug in function\n"
+"`_PyArg_UnpackKeywordsWithVararg` .\n"
+"\n"
+"Calling this function by oob_poc(1, 2, 3, 4, kw1=5, kw2=6)\n"
+"to trigger this bug (crash).\n"
+"Expected return: (1, 2, (3, 4), 5, 6)");
+
+#define BUILTIN_OOB_POC_METHODDEF    \
+    {"oob_poc", _PyCFunction_CAST(builtin_oob_poc), METH_FASTCALL|METH_KEYWORDS, builtin_oob_poc__doc__},
+
+static PyObject *
+builtin_oob_poc_impl(PyObject *module, PyObject *pos1, PyObject *pos2,
+                     PyObject *varargs, PyObject *kw1, PyObject *kw2);
+
+static PyObject *
+builtin_oob_poc(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    #define NUM_KEYWORDS 4
+    #if NUM_KEYWORDS == 0
+
+    #  if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+    #    define KWTUPLE (PyObject *)&_Py_SINGLETON(tuple_empty)
+    #  else
+    #    define KWTUPLE NULL
+    #  endif
+
+    #else  // NUM_KEYWORDS != 0
+    #  if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+
+    static struct {
+        PyGC_Head _this_is_not_used;
+        PyObject_VAR_HEAD
+        PyObject *ob_item[NUM_KEYWORDS];
+    } _kwtuple = {
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
+        .ob_item = { &_Py_ID(pos1), &_Py_ID(pos2), &_Py_ID(kw1), &_Py_ID(kw2), },
+    };
+    #  define KWTUPLE (&_kwtuple.ob_base.ob_base)
+
+    #  else  // !Py_BUILD_CORE
+    #    define KWTUPLE NULL
+    #  endif  // !Py_BUILD_CORE
+    #endif  // NUM_KEYWORDS != 0
+    #undef NUM_KEYWORDS
+
+    static const char * const _keywords[] = {"pos1", "pos2", "kw1", "kw2", NULL};
+    static _PyArg_Parser _parser = {
+        .keywords = _keywords,
+        .fname = "oob_poc",
+        .kwtuple = KWTUPLE,
+    };
+    #undef KWTUPLE
+    PyObject *argsbuf[5];
+    Py_ssize_t noptargs = 0 + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 2;
+    PyObject *pos1;
+    PyObject *pos2;
+    PyObject *varargs = NULL;
+    PyObject *kw1 = Py_None;
+    PyObject *kw2 = Py_None;
+
+    args = _PyArg_UnpackKeywordsWithVararg(args, nargs, NULL, kwnames, &_parser, 2, 2, 0, 2, argsbuf);
+    if (!args) {
+        goto exit;
+    }
+    pos1 = args[0];
+    pos2 = args[1];
+    varargs = args[2];
+    if (!noptargs) {
+        goto skip_optional_kwonly;
+    }
+    if (args[3]) {
+        kw1 = args[3];
+        if (!--noptargs) {
+            goto skip_optional_kwonly;
+        }
+    }
+    kw2 = args[4];
+skip_optional_kwonly:
+    return_value = builtin_oob_poc_impl(module, pos1, pos2, varargs, kw1, kw2);
+
+exit:
+    Py_XDECREF(varargs);
+    return return_value;
+}
+/*[clinic end generated code: output=a2dcbbfce036ba72 input=a9049054013a1b77]*/
