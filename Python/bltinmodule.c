@@ -2712,6 +2712,41 @@ builtin_oob_poc_impl(PyObject *module, PyObject *pos1, PyObject *pos2,
     return tuple;
 }
 
+/*[clinic input]
+kw_pass_poc as builtin_kw_pass_poc
+
+
+    pos: object
+    *args: object
+    kw: object = None
+
+Proof-of-concept of keyword args passing bug.
+
+The calculation of `noptargs` in AC-generated function
+`builtin_kw_pass_poc` is incorrect.
+
+When `kwnames` is NULL, `noptargs` is always -1,
+so `args[2]` will overwrite `kw`'s default value,
+which cause a runtime crash.
+
+Calling this function by kw_pass_poc(1, 2, 3)
+to trigger this bug (crash).
+Expected return: (1, (2, 3))
+
+[clinic start generated code]*/
+
+static PyObject *
+builtin_kw_pass_poc_impl(PyObject *module, PyObject *pos, PyObject *args,
+                         PyObject *kw)
+/*[clinic end generated code: output=2d87fb3fdac299f6 input=21ca51f8a5c34d04]*/
+{
+    PyObject *tuple = PyTuple_New(3);;
+    PyTuple_SET_ITEM(tuple, 0, Py_NewRef(pos));
+    PyTuple_SET_ITEM(tuple, 1, Py_NewRef(args));
+    PyTuple_SET_ITEM(tuple, 2, Py_NewRef(kw));
+    return tuple;
+}
+
 typedef struct {
     PyObject_HEAD
     Py_ssize_t tuplesize;
@@ -3030,6 +3065,7 @@ static PyMethodDef builtin_methods[] = {
     BUILTIN_SUM_METHODDEF
     {"vars",            builtin_vars,       METH_VARARGS, vars_doc},
     BUILTIN_OOB_POC_METHODDEF
+    BUILTIN_KW_PASS_POC_METHODDEF
     {NULL,              NULL},
 };
 

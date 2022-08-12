@@ -1374,4 +1374,91 @@ exit:
     Py_XDECREF(varargs);
     return return_value;
 }
-/*[clinic end generated code: output=a2dcbbfce036ba72 input=a9049054013a1b77]*/
+
+PyDoc_STRVAR(builtin_kw_pass_poc__doc__,
+"kw_pass_poc($module, /, pos, *args, kw=None)\n"
+"--\n"
+"\n"
+"Proof-of-concept of keyword args passing bug.\n"
+"\n"
+"The calculation of `noptargs` in AC-generated function\n"
+"`builtin_kw_pass_poc` is incorrect.\n"
+"\n"
+"When `kwnames` is NULL, `noptargs` is always -1,\n"
+"so `args[2]` will overwrite `kw`\'s default value,\n"
+"which cause a runtime crash.\n"
+"\n"
+"Calling this function by kw_pass_poc(1, 2, 3)\n"
+"to trigger this bug (crash).\n"
+"Expected return: (1, (2, 3))");
+
+#define BUILTIN_KW_PASS_POC_METHODDEF    \
+    {"kw_pass_poc", _PyCFunction_CAST(builtin_kw_pass_poc), METH_FASTCALL|METH_KEYWORDS, builtin_kw_pass_poc__doc__},
+
+static PyObject *
+builtin_kw_pass_poc_impl(PyObject *module, PyObject *pos, PyObject *args,
+                         PyObject *kw);
+
+static PyObject *
+builtin_kw_pass_poc(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    #define NUM_KEYWORDS 2
+    #if NUM_KEYWORDS == 0
+
+    #  if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+    #    define KWTUPLE (PyObject *)&_Py_SINGLETON(tuple_empty)
+    #  else
+    #    define KWTUPLE NULL
+    #  endif
+
+    #else  // NUM_KEYWORDS != 0
+    #  if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+
+    static struct {
+        PyGC_Head _this_is_not_used;
+        PyObject_VAR_HEAD
+        PyObject *ob_item[NUM_KEYWORDS];
+    } _kwtuple = {
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
+        .ob_item = { &_Py_ID(pos), &_Py_ID(kw), },
+    };
+    #  define KWTUPLE (&_kwtuple.ob_base.ob_base)
+
+    #  else  // !Py_BUILD_CORE
+    #    define KWTUPLE NULL
+    #  endif  // !Py_BUILD_CORE
+    #endif  // NUM_KEYWORDS != 0
+    #undef NUM_KEYWORDS
+
+    static const char * const _keywords[] = {"pos", "kw", NULL};
+    static _PyArg_Parser _parser = {
+        .keywords = _keywords,
+        .fname = "kw_pass_poc",
+        .kwtuple = KWTUPLE,
+    };
+    #undef KWTUPLE
+    PyObject *argsbuf[3];
+    Py_ssize_t noptargs = 0 + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 1;
+    PyObject *pos;
+    PyObject *__clinic_args = NULL;
+    PyObject *kw = Py_None;
+
+    args = _PyArg_UnpackKeywordsWithVararg(args, nargs, NULL, kwnames, &_parser, 1, 1, 0, 1, argsbuf);
+    if (!args) {
+        goto exit;
+    }
+    pos = args[0];
+    __clinic_args = args[1];
+    if (!noptargs) {
+        goto skip_optional_kwonly;
+    }
+    kw = args[2];
+skip_optional_kwonly:
+    return_value = builtin_kw_pass_poc_impl(module, pos, __clinic_args, kw);
+
+exit:
+    Py_XDECREF(__clinic_args);
+    return return_value;
+}
+/*[clinic end generated code: output=408d5f0db9d77e86 input=a9049054013a1b77]*/

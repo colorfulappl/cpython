@@ -934,6 +934,7 @@ extern "C" {
                 INIT_ID(keyfile), \
                 INIT_ID(keys), \
                 INIT_ID(kind), \
+                INIT_ID(kw), \
                 INIT_ID(kw1), \
                 INIT_ID(kw2), \
                 INIT_ID(lambda), \
@@ -2173,6 +2174,8 @@ _PyUnicode_InitStaticStrings(void) {
     string = &_Py_ID(keys);
     PyUnicode_InternInPlace(&string);
     string = &_Py_ID(kind);
+    PyUnicode_InternInPlace(&string);
+    string = &_Py_ID(kw);
     PyUnicode_InternInPlace(&string);
     string = &_Py_ID(kw1);
     PyUnicode_InternInPlace(&string);
@@ -6273,6 +6276,10 @@ _PyStaticObjects_CheckRefcnt(void) {
     };
     if (Py_REFCNT((PyObject *)&_Py_ID(kind)) < _PyObject_IMMORTAL_REFCNT) {
         _PyObject_Dump((PyObject *)&_Py_ID(kind));
+        Py_FatalError("immortal object has less refcnt than expected _PyObject_IMMORTAL_REFCNT");
+    };
+    if (Py_REFCNT((PyObject *)&_Py_ID(kw)) < _PyObject_IMMORTAL_REFCNT) {
+        _PyObject_Dump((PyObject *)&_Py_ID(kw));
         Py_FatalError("immortal object has less refcnt than expected _PyObject_IMMORTAL_REFCNT");
     };
     if (Py_REFCNT((PyObject *)&_Py_ID(kw1)) < _PyObject_IMMORTAL_REFCNT) {
