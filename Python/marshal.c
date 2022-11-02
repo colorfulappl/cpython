@@ -74,6 +74,8 @@ module marshal
 #define TYPE_SHORT_ASCII        'z'
 #define TYPE_SHORT_ASCII_INTERNED 'Z'
 
+#define TYPE_SLICE              '@'
+
 #define WFERR_OK 0
 #define WFERR_UNMARSHALLABLE 1
 #define WFERR_NESTEDTOODEEP 2
@@ -586,6 +588,12 @@ w_complex_object(PyObject *v, char flag, WFILE *p)
         W_TYPE(TYPE_STRING, p);
         w_pstring(view.buf, view.len, p);
         PyBuffer_Release(&view);
+    }
+    else if (PySlice_Check(v)) {
+        W_TYPE(TYPE_SLICE, p);
+        w_object(((PySliceObject *)v)->start, p);
+        w_object(((PySliceObject *)v)->stop, p);
+        w_object(((PySliceObject *)v)->step, p);
     }
     else {
         W_TYPE(TYPE_UNKNOWN, p);
@@ -1481,6 +1489,18 @@ r_object(RFILE *p)
             break;
         }
         retval = Py_NewRef(v);
+        break;
+
+    case TYPE_SLICE:
+        idx = r_ref_reserve(flag, p);
+        PyObject *start = r_object(p);
+        PyObject *stop = r_object(p);
+        PyObject *step = r_object(p);
+        retval = PySlice_New(start, stop, step);
+        Py_DECREF(start);
+        Py_DECREF(stop);
+        Py_DECREF(step);
+        retval = r_ref_insert(retval, idx, flag, p);
         break;
 
     default:

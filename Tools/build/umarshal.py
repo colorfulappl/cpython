@@ -36,6 +36,7 @@ class Type:
     SMALL_TUPLE         = ord(')')
     SHORT_ASCII         = ord('z')
     SHORT_ASCII_INTERNED = ord('Z')
+    SLICE               = ord('@')
 
 
 FLAG_REF = 0x80  # with a type, add obj to index
@@ -295,6 +296,14 @@ class Reader:
             n = self.r_long()
             retval = self.refs[n]
             assert retval is not None
+            return retval
+        elif type == Type.SLICE:
+            idx = self.r_ref_reserve(flag)
+            start = self.r_object()
+            stop = self.r_object()
+            step = self.r_object()
+            retval = slice(start, stop, step)
+            self.r_ref_insert(retval, idx, flag)
             return retval
         else:
             breakpoint()

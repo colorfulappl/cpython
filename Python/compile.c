@@ -476,7 +476,7 @@ static int compiler_visit_expr(struct compiler *, expr_ty);
 static int compiler_augassign(struct compiler *, stmt_ty);
 static int compiler_annassign(struct compiler *, stmt_ty);
 static int compiler_subscript(struct compiler *, expr_ty);
-static int compiler_slice(struct compiler *, expr_ty);
+static int compiler_slice(struct compiler *, expr_ty, int opt);
 
 static int are_all_items_const(asdl_expr_seq *, Py_ssize_t, Py_ssize_t);
 
@@ -5923,9 +5923,12 @@ compiler_visit_expr1(struct compiler *c, expr_ty e)
         break;
     case Slice_kind:
     {
-        int n = compiler_slice(c, e);
+        int n = compiler_slice(c, e, 1);
         if (n == 0) {
             return 0;
+        }
+        if (n == 1) {
+            break;
         }
         ADDOP_I(c, loc, BUILD_SLICE, n);
         break;
@@ -5973,7 +5976,7 @@ compiler_augassign(struct compiler *c, stmt_ty s)
     case Subscript_kind:
         VISIT(c, expr, e->v.Subscript.value);
         if (is_two_element_slice(e->v.Subscript.slice)) {
-            if (!compiler_slice(c, e->v.Subscript.slice)) {
+            if (!compiler_slice(c, e->v.Subscript.slice, 0)) {
                 return 0;
             }
             ADDOP_I(c, loc, COPY, 3);
@@ -6235,7 +6238,7 @@ compiler_subscript(struct compiler *c, expr_ty e)
 
     VISIT(c, expr, e->v.Subscript.value);
     if (is_two_element_slice(e->v.Subscript.slice) && ctx != Del) {
-        if (!compiler_slice(c, e->v.Subscript.slice)) {
+        if (!compiler_slice(c, e->v.Subscript.slice, 0)) {
             return 0;
         }
         if (ctx == Load) {
@@ -6262,10 +6265,41 @@ compiler_subscript(struct compiler *c, expr_ty e)
 /* Returns the number of the values emitted,
  * thus are needed to build the slice, or 0 if there is an error. */
 static int
-compiler_slice(struct compiler *c, expr_ty s)
+compiler_slice(struct compiler *c, expr_ty s, int opt)
 {
     int n = 2;
     assert(s->kind == Slice_kind);
+
+    if (opt &&
+        (!s->v.Slice.lower || s->v.Slice.lower->kind == Constant_kind) &&
+        (!s->v.Slice.upper || s->v.Slice.upper->kind == Constant_kind) &&
+        (!s->v.Slice.step || s->v.Slice.step->kind == Constant_kind)) {
+        PyObject *slice = PySlice_New(s->v.Slice.lower ? s->v.Slice.lower->v.Constant.value : Py_None,
+                                      s->v.Slice.upper ? s->v.Slice.upper->v.Constant.value : Py_None,
+                                      s->v.Slice.step ? s->v.Slice.step->v.Constant.value : NULL);
+        ADDOP_LOAD_CONST(c, LOC(s), slice);
+        return 1;
+
+        if (s->v.Slice.lower) {
+            VISIT(c, expr, s->v.Slice.lower);
+        }
+        else {
+            ADDOP_LOAD_CONST(c, LOC(s), Py_None);
+        }
+
+        if (s->v.Slice.upper) {
+            VISIT(c, expr, s->v.Slice.upper);
+        }
+        else {
+            ADDOP_LOAD_CONST(c, LOC(s), Py_None);
+        }
+
+        if (s->v.Slice.step) {
+            n++;
+            VISIT(c, expr, s->v.Slice.step);
+        }
+        return n;
+    }
 
     /* only handles the cases where BUILD_SLICE is emitted */
     if (s->v.Slice.lower) {
